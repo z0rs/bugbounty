@@ -1,0 +1,78 @@
+name: Recon
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  scan-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y wget unzip jq golang nodejs npm
+          
+      - name: Install wappalyzer
+        run: |
+          sudo npm install -g wappalyzer
+
+      - name: Install Go tools
+        run: |
+          go install github.com/projectdiscovery/httpx/cmd/httpx@latest && sudo mv ~/go/bin/httpx /usr/bin/
+          go install github.com/OWASP/Amass/v3/cmd/amass@latest && sudo mv ~/go/bin/amass /usr/bin/
+          go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
+          go install github.com/tomnomnom/httprobe@latest && sudo mv ~/go/bin/httprobe /usr/bin/
+          
+      - name: Prepare directories and fetch data
+        run: |
+          mkdir ~/bugbounty
+          cd ~/bugbounty
+          curl -O "https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/master/chaos-bugbounty-list.json"
+          cat chaos-bugbounty-list.json | grep '"name"' | awk '{$1=$1};1' | sed 's/"name": "//g' | sed 's/"name":"//g' | sed 's/",//g' | while read folder; do mkdir -p $folder -v; done
+          for (( i=0; i < $(cat chaos-bugbounty-list.json | jq -r .programs | jq length); i++ ))
+          do
+             cat chaos-bugbounty-list.json | jq --arg i "$i" -r ".programs[($i | tonumber)].domains | .[]" > "$(cat chaos-bugbounty-list.json | jq --arg i "$i" -r '.programs[($i | tonumber)].name')/assets.txt" && echo -n "."
+          done
+
+      - name: Run reconnaissance
+        run: |
+          for BBP in $(ls ~/bugbounty); do
+              cd ~/bugbounty/$BBP
+              subfinder -dL assets.txt -o subdomains.txt
+
+              while read TARGET; do
+                  echo "Finding technology for $TARGET"
+                  HTTP_TARGET=$(echo "$TARGET" | httpx -silent | xargs)
+
+                  if [ -z "$HTTP_TARGET" ]
+                  then
+                      echo "Target not active"
+                  else
+                      wappalyzer "$HTTP_TARGET" -o "$(echo $HTTP_TARGET | sed -e 's/[^[:alnum:]]/_/g').tech.json"
+                  fi
+              done < subdomains.txt
+          done
+
+      - name: Zip results
+        run: |
+          cd ~
+          zip -r bugbounty.zip ~/bugbounty
+          
+      - name: Set up Git user
+        run: |
+          git config --global user.email "${{ secrets.EMAIL_ADDRESS }}"
+          git config --global user.name "${{ secrets.USER_NAME }}"
+          
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "Result scan $(date -u)" --no-verify
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.ref }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
