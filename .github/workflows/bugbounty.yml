@@ -25,16 +25,18 @@ jobs:
           go install github.com/OWASP/Amass/v3/cmd/amass@latest && sudo mv ~/go/bin/amass /usr/bin/
           go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
           go install github.com/tomnomnom/httprobe@latest && sudo mv ~/go/bin/httprobe /usr/bin/
+          go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && sudo mv ~/go/bin/httprobe /usr/bin/
           
       - name: Prepare directories and fetch data
         run: |
           mkdir ~/bugbounty
           cd ~/bugbounty
           curl -O "https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/master/chaos-bugbounty-list.json"
-          cat chaos-bugbounty-list.json | grep '"name"' | awk '{$1=$1};1' | sed 's/"name": "//g' | sed 's/"name":"//g' | sed 's/",//g' | while read folder; do mkdir -p $folder -v; done
           for (( i=0; i < $(cat chaos-bugbounty-list.json | jq -r .programs | jq length); i++ ))
           do
-             cat chaos-bugbounty-list.json | jq --arg i "$i" -r ".programs[($i | tonumber)].domains | .[]" > "$(cat chaos-bugbounty-list.json | jq --arg i "$i" -r '.programs[($i | tonumber)].name')/assets.txt" && echo -n "."
+             folder_name=$(cat chaos-bugbounty-list.json | jq --arg i "$i" -r '.programs[($i | tonumber)].name')
+             mkdir -p "${folder_name// /_}" -v
+             cat chaos-bugbounty-list.json | jq --arg i "$i" -r ".programs[($i | tonumber)].domains | .[]" > "${folder_name// /_}/assets.txt" && echo -n "."
           done
 
       - name: Run reconnaissance
