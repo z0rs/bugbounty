@@ -17,6 +17,6 @@ jobs:
           
       - name: Install wappalyzer
         run: |
-          sudo npm install -g wappalyzer
-          wappalyzer
+          go install -v github.com/webklex/wappalyzer@main && sudo mv ~/go/bin/wappalyzer /usr/bin/
+          wappalyzer -h
         
