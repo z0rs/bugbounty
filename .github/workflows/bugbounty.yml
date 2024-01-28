@@ -25,7 +25,7 @@ jobs:
           go install github.com/OWASP/Amass/v3/cmd/amass@latest && sudo mv ~/go/bin/amass /usr/bin/
           go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
           go install github.com/tomnomnom/httprobe@latest && sudo mv ~/go/bin/httprobe /usr/bin/
-          go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && sudo mv ~/go/bin/httprobe /usr/bin/
+          go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest && sudo mv ~/go/bin/subfinder /usr/bin/
           
       - name: Prepare directories and fetch data
         run: |
