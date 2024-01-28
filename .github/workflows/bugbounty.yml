@@ -20,5 +20,54 @@ jobs:
           wget https://github.com/projectdiscovery/httpx/releases/download/v1.3.9/httpx_1.3.9_linux_amd64.zip && unzip -o httpx_1.3.9_linux_amd64.zip && sudo mv httpx /usr/bin/ && sudo rm -rf httpx_1.3.9_linux_amd64.zip *.md
           go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
           wget https://github.com/projectdiscovery/subfinder/releases/download/v2.6.4/subfinder_2.6.4_linux_amd64.zip && unzip subfinder_2.6.4_linux_amd64.zip && sudo mv subfinder /usr/bin/ && sudo rm -rf subfinder_2.6.4_linux_amd64.zip
-          npm i -g wappalyzer 
-          wappalyzer -h
+          
+      - name: Prepare directories and fetch data
+        run: |
+          mkdir ~/bugbounty
+          cd ~/bugbounty
+          curl -O "https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/master/chaos-bugbounty-list.json"
+          jq -r '.programs[] | select(.bounty==true) | .domains[]' chaos-bugbounty-list.json > bounty_domains.txt
+          while read DOMAIN; do
+             folder_name=$(jq -r '.programs[] | select(.domains[] == $DOMAIN) | .name' --arg DOMAIN "$DOMAIN" chaos-bugbounty-list.json)
+             mkdir -p "${folder_name// /_}" -v
+             echo "$DOMAIN" > "${folder_name// /_}/assets.txt"
+          done < bounty_domains.txt
+          
+      - name: Run reconnaissance
+        run: |
+          for BBP in $(ls ~/bugbounty); do
+              cd ~/bugbounty/$BBP
+              subfinder -dL assets.txt -o subdomains.txt
+              while read TARGET; do
+                  echo "Finding technology for $TARGET"
+                  HTTP_TARGET=$(echo "$TARGET" | httpx -silent | xargs)
+                  if [ -z "$HTTP_TARGET" ]
+                  then
+                      echo "Target not active"
+                  else
+                      echo "Analyzing target: $HTTP_TARGET"
+                      # Anda bisa menambahkan perintah lain untuk analisis teknologi di sini jika diperlukan
+                  fi
+              done < subdomains.txt
+          done
+          
+      - name: Zip results
+        run: |
+          cd ~
+          zip -r bugbounty.zip ~/bugbounty
+          
+      - name: Set up Git user
+        run: |
+          git config --global user.email "${{ secrets.EMAIL_ADDRESS }}"
+          git config --global user.name "${{ secrets.USER_NAME }}"
+          
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "Result scan $(date -u)" --no-verify
+          
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.ref }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
