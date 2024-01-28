@@ -21,7 +21,7 @@ jobs:
 
       - name: Install Go tools
         run: |
-          go install github.com/projectdiscovery/httpx/cmd/httpx@latest && sudo mv ~/go/bin/httpx /usr/bin/
+          wget https://github.com/projectdiscovery/httpx/releases/download/v1.3.9/httpx_1.3.9_linux_amd64.zip && unzip httpx_1.3.9_linux_amd64.zip && sudo mv httpx /usr/bin/ && sudo rm -rf httpx_1.3.9_linux_amd64.zip *.md
           go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
           wget https://github.com/projectdiscovery/subfinder/releases/download/v2.6.4/subfinder_2.6.4_linux_amd64.zip && unzip subfinder_2.6.4_linux_amd64.zip && sudo mv subfinder /usr/bin/ && sudo rm -rf subfinder_2.6.4_linux_amd64.zip
           
@@ -30,12 +30,12 @@ jobs:
           mkdir ~/bugbounty
           cd ~/bugbounty
           curl -O "https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/master/chaos-bugbounty-list.json"
-          for (( i=0; i < $(cat chaos-bugbounty-list.json | jq -r .programs | jq length); i++ ))
-          do
-             folder_name=$(cat chaos-bugbounty-list.json | jq --arg i "$i" -r '.programs[($i | tonumber)].name')
+          jq -r '.programs[] | select(.bounty==true) | .domains[]' chaos-bugbounty-list.json > bounty_domains.txt
+          while read DOMAIN; do
+             folder_name=$(jq -r '.programs[] | select(.domains[] == $DOMAIN) | .name' --arg DOMAIN "$DOMAIN" chaos-bugbounty-list.json)
              mkdir -p "${folder_name// /_}" -v
-             cat chaos-bugbounty-list.json | jq --arg i "$i" -r ".programs[($i | tonumber)].domains | .[]" > "${folder_name// /_}/assets.txt" && echo -n "."
-          done
+             echo "$DOMAIN" > "${folder_name// /_}/assets.txt"
+          done < bounty_domains.txt
 
       - name: Run reconnaissance
         run: |
