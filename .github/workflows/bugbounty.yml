@@ -46,6 +46,7 @@ jobs:
                   then
                       echo "Target not active"
                   else
+                      echo "Analyzing target: $HTTP_TARGET"
                       wappalyzer "$HTTP_TARGET" -o "$(echo $HTTP_TARGET | sed -e 's/[^[:alnum:]]/_/g').tech.json"
                   fi
               done < subdomains.txt
