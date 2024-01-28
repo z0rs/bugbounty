@@ -24,4 +24,4 @@ jobs:
           wget https://github.com/projectdiscovery/httpx/releases/download/v1.3.9/httpx_1.3.9_linux_amd64.zip && unzip httpx_1.3.9_linux_amd64.zip && sudo mv httpx /usr/bin/ && sudo rm -rf httpx_1.3.9_linux_amd64.zip *.md
           go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
           wget https://github.com/projectdiscovery/subfinder/releases/download/v2.6.4/subfinder_2.6.4_linux_amd64.zip && unzip subfinder_2.6.4_linux_amd64.zip && sudo mv subfinder /usr/bin/ && sudo rm -rf subfinder_2.6.4_linux_amd64.zip
-          http -h
+          httpx -h
