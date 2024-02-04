@@ -18,7 +18,7 @@ jobs:
       - name: Install tools
         run: |
           wget https://github.com/projectdiscovery/httpx/releases/download/v1.3.9/httpx_1.3.9_linux_amd64.zip && unzip -o httpx_1.3.9_linux_amd64.zip && sudo mv httpx /usr/bin/
-          wget https://github.com/projectdiscovery/nuclei/releases/download/v3.1.10/nuclei_3.1.10_linux_amd64.zip && unzip -o nuclei_3.1.10_linux_amd64.zip && sudo mv ~/go/bin/nuclei /usr/bin/ && sudo rm -rf nuclei_3.1.10_linux_amd64.zip && sudo rm -rf httpx_1.3.9_linux_amd64.zip *.md *.zip
+          wget https://github.com/projectdiscovery/nuclei/releases/download/v3.1.10/nuclei_3.1.10_linux_amd64.zip && unzip -o nuclei_3.1.10_linux_amd64.zip && sudo mv nuclei /usr/bin/ && sudo rm -rf nuclei_3.1.10_linux_amd64.zip && sudo rm -rf httpx_1.3.9_linux_amd64.zip *.md *.zip
           
       - name: Prepare directories and fetch data
         run: |
