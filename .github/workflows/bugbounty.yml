@@ -20,42 +20,11 @@ jobs:
           wget https://github.com/projectdiscovery/httpx/releases/download/v1.3.9/httpx_1.3.9_linux_amd64.zip && unzip -o httpx_1.3.9_linux_amd64.zip && sudo mv httpx /usr/bin/ && sudo rm -rf httpx_1.3.9_linux_amd64.zip *.md
           go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
           wget https://github.com/projectdiscovery/subfinder/releases/download/v2.6.4/subfinder_2.6.4_linux_amd64.zip && unzip subfinder_2.6.4_linux_amd64.zip && sudo mv subfinder /usr/bin/ && sudo rm -rf subfinder_2.6.4_linux_amd64.zip
-          go install -v github.com/webklex/wappalyzer@main && sudo mv ~/go/bin/wappalyzer /usr/bin/
+          https://github.com/projectdiscovery/nuclei/releases/download/v3.1.10/nuclei_3.1.10_linux_amd64.zip && unzip nuclei_3.1.10_linux_amd64.zip && sudo mv ~/go/bin/nuclei /usr/bin/ && sudo rm -rf nuclei_3.1.10_linux_amd64.zip
           
       - name: Prepare directories and fetch data
         run: |
-          mkdir ~/bugbounty
-          cd ~/bugbounty
-          curl -O "https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/master/chaos-bugbounty-list.json"
-          jq -r '.programs[] | select(.bounty==true) | .domains[]' chaos-bugbounty-list.json > bounty_domains.txt
-          while read DOMAIN; do
-             folder_name=$(jq -r '.programs[] | select(.domains[] == $DOMAIN) | .name' --arg DOMAIN "$DOMAIN" chaos-bugbounty-list.json)
-             mkdir -p "${folder_name// /_}" -v
-             echo "$DOMAIN" > "${folder_name// /_}/assets.txt"
-          done < bounty_domains.txt
-          
-      - name: Run reconnaissance
-        run: |
-          for BBP in $(ls ~/bugbounty); do
-              cd ~/bugbounty/$BBP
-              subfinder -dL assets.txt -o subdomains.txt
-              while read TARGET; do
-                  echo "Finding technology for $TARGET"
-                  HTTP_TARGET=$(echo "$TARGET" | httpx -silent | xargs)
-                  if [ -z "$HTTP_TARGET" ]
-                  then
-                      echo "Target not active"
-                  else
-                      echo "Analyzing target: $HTTP_TARGET"
-                      wappalyzer --target "$HTTP_TARGET" --disable-ssl --output "$(echo $HTTP_TARGET | sed -e 's/[^[:alnum:]]/_/g').tech.json --json"
-                  fi
-              done < subdomains.txt
-          done
-          
-      - name: Zip results
-        run: |
-          cd ~
-          zip -r bugbounty.zip ~/bugbounty
+          curl -s "https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/master/chaos-bugbounty-list.json" | jq -r '.programs[] | select(.bounty==true) | .domains[]' | nuclei -silent -nc -attack-type pitchfork | tee result.txt
           
       - name: Set up Git user
         run: |
