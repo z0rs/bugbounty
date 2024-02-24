@@ -17,12 +17,13 @@ jobs:
           
       - name: Install tools
         run: |
+          wget https://github.com/projectdiscovery/subfinder/releases/download/v2.6.5/subfinder_2.6.5_linux_amd64.zip && unzip -o subfinder_2.6.5_linux_amd64.zip && sudo mv subfinder /usr/bin/
           wget https://github.com/projectdiscovery/httpx/releases/download/v1.3.9/httpx_1.3.9_linux_amd64.zip && unzip -o httpx_1.3.9_linux_amd64.zip && sudo mv httpx /usr/bin/
           wget https://github.com/projectdiscovery/nuclei/releases/download/v3.1.10/nuclei_3.1.10_linux_amd64.zip && unzip -o nuclei_3.1.10_linux_amd64.zip && sudo mv nuclei /usr/bin/ && sudo rm -rf nuclei_3.1.10_linux_amd64.zip && sudo rm -rf httpx_1.3.9_linux_amd64.zip *.md *.zip
           
       - name: Prepare directories and fetch data
         run: |
-          curl -s "https://raw.githubusercontent.com/projectdiscovery/public-bugbounty-programs/master/chaos-bugbounty-list.json" | jq -r '.programs[] | select(.bounty==true) | .domains[]' | nuclei -silent -nc -attack-type pitchfork | tee result.txt
+          curl -s "https://gist.githubusercontent.com/z0rs/d0f9eddf5d179beed03397b906fdc95d/raw/c432d0a4f5f84011b784c669a66e979cfa8777ad/host-domain" | subfinder | tee result-subfinder.txt
           
       - name: Set up Git user
         run: |
