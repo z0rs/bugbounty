@@ -2,15 +2,13 @@ name: Nuclei Scan
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
 
 jobs:
-  nuclei-scan:
+  scan-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
         
       - name: Install dependencies
@@ -23,21 +21,17 @@ jobs:
           unzip -o nuclei_${CLEAN_VERSION}_linux_amd64.zip
           sudo mv nuclei /usr/bin/
 
-      # Run Nuclei scan
       - name: Run Nuclei
         run: |
           curl -s "https://gist.githubusercontent.com/z0rs/4d7315dd42336e8dcbcaef7ec6e05f2b/raw/20c86b555382cd4280fb4d0c4e9e474df04e773a/province.md" | nuclei -silent -attack-type pitchfork -rl 3 -bs 3 -timeout 20 -retries 2 -json-export nuclei_results.jsonl
 
-      - name: Push results
+      - name: Commit Nuclei
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@users.noreply.github.com"
-          git add nuclei_results.jsonl
-          git commit -m "Add Nuclei scan results"
-          git push origin main
-          
-      - name: Upload results
-        uses: actions/upload-artifact@v2
+          git add .
+          git commit -m "Result scan $(date -u)" --no-verify
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
         with:
-          name: nuclei-scan-results
-          path: nuclei_results.jsonl
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: master
