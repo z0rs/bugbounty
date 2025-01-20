@@ -1,42 +1,43 @@
-name: Recon
+name: Nuclei Scan
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
-  scan-and-deploy:
+  nuclei-scan:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
         
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y wget unzip jq golang nodejs npm
-          
-      - name: Install tools
+          sudo apt-get update
+          sudo apt-get install -y curl jq unzip
+          LATEST_VERSION=$(curl -s https://api.github.com/repos/projectdiscovery/nuclei/releases/latest | jq -r '.tag_name')
+          CLEAN_VERSION=${LATEST_VERSION#v}
+          wget https://github.com/projectdiscovery/nuclei/releases/download/${LATEST_VERSION}/nuclei_${CLEAN_VERSION}_linux_amd64.zip
+          unzip -o nuclei_${CLEAN_VERSION}_linux_amd64.zip
+          sudo mv nuclei /usr/bin/
+
+      # Run Nuclei scan
+      - name: Run Nuclei
         run: |
-          wget https://github.com/projectdiscovery/subfinder/releases/download/v2.6.5/subfinder_2.6.5_linux_amd64.zip && unzip -o subfinder_2.6.5_linux_amd64.zip && sudo mv subfinder /usr/bin/
-          wget https://github.com/projectdiscovery/httpx/releases/download/v1.3.9/httpx_1.3.9_linux_amd64.zip && unzip -o httpx_1.3.9_linux_amd64.zip && sudo mv httpx /usr/bin/
-          wget https://github.com/projectdiscovery/nuclei/releases/download/v3.1.10/nuclei_3.1.10_linux_amd64.zip && unzip -o nuclei_3.1.10_linux_amd64.zip && sudo mv nuclei /usr/bin/ && sudo rm -rf nuclei_3.1.10_linux_amd64.zip && sudo rm -rf httpx_1.3.9_linux_amd64.zip *.md *.zip
-          
-      - name: Prepare directories and fetch data
+          curl -s "https://gist.githubusercontent.com/z0rs/4d7315dd42336e8dcbcaef7ec6e05f2b/raw/20c86b555382cd4280fb4d0c4e9e474df04e773a/province.md" | nuclei -silent -attack-type pitchfork -rl 3 -bs 3 -timeout 20 -retries 2 -json-export nuclei_results.jsonl
+
+      - name: Push results
         run: |
-          curl -s "https://gist.githubusercontent.com/z0rs/d0f9eddf5d179beed03397b906fdc95d/raw/c432d0a4f5f84011b784c669a66e979cfa8777ad/host-domain" | subfinder | tee result-subfinder.txt
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@users.noreply.github.com"
+          git add nuclei_results.jsonl
+          git commit -m "Add Nuclei scan results"
+          git push origin main
           
-      - name: Set up Git user
-        run: |
-          git config --global user.email "${{ secrets.EMAIL_ADDRESS }}"
-          git config --global user.name "${{ secrets.USER_NAME }}"
-          
-      - name: Commit changes
-        run: |
-          git add .
-          git commit -m "Result scan $(date -u)" --no-verify
-          
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+      - name: Upload results
+        uses: actions/upload-artifact@v2
         with:
-          branch: ${{ github.ref }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          name: nuclei-scan-results
+          path: nuclei_results.jsonl
