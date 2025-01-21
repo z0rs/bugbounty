@@ -23,7 +23,7 @@ jobs:
 
       - name: Run Nuclei
         run: |
-          curl -s "https://gist.githubusercontent.com/z0rs/4d7315dd42336e8dcbcaef7ec6e05f2b/raw/20c86b555382cd4280fb4d0c4e9e474df04e773a/province.md" | nuclei -silent -attack-type pitchfork -rl 3 -bs 3 -timeout 20 -retries 2 -json-export nuclei_results.jsonl
+          curl -s "https://gist.githubusercontent.com/z0rs/4d7315dd42336e8dcbcaef7ec6e05f2b/raw/20c86b555382cd4280fb4d0c4e9e474df04e773a/province.md" | nuclei -silent -attack-type pitchfork -json-export nuclei_results.jsonl
 
       - name: Commit Nuclei
         run: |
