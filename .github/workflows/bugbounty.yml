@@ -14,16 +14,18 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl jq unzip
+          sudo apt-get update && sudo apt-get install -y wget unzip jq golang
+          go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
           LATEST_VERSION=$(curl -s https://api.github.com/repos/projectdiscovery/nuclei/releases/latest | jq -r '.tag_name')
           CLEAN_VERSION=${LATEST_VERSION#v}
           wget https://github.com/projectdiscovery/nuclei/releases/download/${LATEST_VERSION}/nuclei_${CLEAN_VERSION}_linux_amd64.zip
           unzip -o nuclei_${CLEAN_VERSION}_linux_amd64.zip
           sudo mv nuclei /usr/bin/
+          sudo chmod +x /usr/bin/nuclei && sudo rm -rf nuclei* *.md
 
       - name: Run Nuclei
         run: |
-          curl -s "https://gist.githubusercontent.com/z0rs/4d7315dd42336e8dcbcaef7ec6e05f2b/raw/20c86b555382cd4280fb4d0c4e9e474df04e773a/province.md" | nuclei -silent -attack-type pitchfork -json-export nuclei_results.jsonl
+          curl -s "https://gist.githubusercontent.com/z0rs/4d7315dd42336e8dcbcaef7ec6e05f2b/raw/20c86b555382cd4280fb4d0c4e9e474df04e773a/province.md" | assetfinder -subs-only | nuclei -silent -attack-type pitchfork -severity medium,high,critical,unknown -o province.txt
 
       - name: Set up Git user
         run: |
