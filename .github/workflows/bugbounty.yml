@@ -25,7 +25,7 @@ jobs:
 
       - name: Run Nuclei
         run: |
-          assetfinder -subs-only nasa.gov | nuclei -silent -attack-type pitchfork -severity medium,high,critical,unknown -o nasa.txt
+         curl -s "https://gist.githubusercontent.com/z0rs/5e3e2a08a0a9d0fa432b028e18f5d304/raw/c4be0799eefab299dee56762e9893c46fc3e4143/detrip" | assetfinder -subs-only | nuclei -silent -attack-type pitchfork -severity medium,high,critical,unknown -o detrip.txt
 
       - name: Set up Git user
         run: |
