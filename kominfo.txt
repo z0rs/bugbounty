@@ -1,0 +1,2 @@
+[fastjson-1-2-68-rce] [http] [critical] https://pelaporan.kominfo.go.id
+[jwt-token] [http] [unknown] https://sigmon.kominfo.go.id ["eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjoiTlRFNE16WTJObU0zTW1WbFl6bGxOQnRFM1Y0S29FUXdLU2h0eG50R0lQaUNza1pOSWJGMitlbDAzYWRjd21ac3RKZW9rRyt2XC85U0hcLzVrNmZ2bjkybE1WVzZiY0YyQ2cxNXRpVmo2QUFBWmt0TlQ1U2hnM2ZjYlM2ZlZoRytmMCIsImlhdCI6MTczNzgyMTY4OCwiZXhwIjoxNzM3ODIxOTg4fQ.T0tA8YJqIRM0pnIXQnqFGA0rU6vu3mh37W9QVwf6Uw4"]
