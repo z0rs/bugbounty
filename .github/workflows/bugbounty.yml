@@ -25,7 +25,7 @@ jobs:
 
       - name: Run Nuclei
         run: |
-         curl -s "https://www.shop-apotheke.com/" | assetfinder -subs-only | nuclei -silent -attack-type pitchfork -severity medium,high,critical,unknown -o www.shop-apotheke.com.txt
+         nuclei -u "shop-apotheke.com" -silent -attack-type pitchfork -severity medium,high,critical,unknown -o www.shop-apotheke.com.txt
 
       - name: Set up Git user
         run: |
