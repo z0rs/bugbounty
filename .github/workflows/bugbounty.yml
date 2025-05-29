@@ -25,7 +25,7 @@ jobs:
 
       - name: Run Nuclei
         run: |
-         curl -s "https://gist.githubusercontent.com/z0rs/6f981b30a203d6539ac2105c283e5fac/raw/6e53822d5b0c382dfabce45bd7f0b7d83890eee6/mtngroup.txt" | nuclei -silent -attack-type pitchfork -severity medium,high,critical,unknown -o mtngroup.txt
+         curl -s "https://gist.githubusercontent.com/z0rs/521be12298502f4490cab8bcca17c050/raw/53646d47280e145778bd23e818758b27d29da1f0/cirebonkota.txt" | nuclei -silent -attack-type pitchfork -severity medium,high,critical,unknown -o cirebonkota.txt
 
       - name: Set up Git user
         run: |
