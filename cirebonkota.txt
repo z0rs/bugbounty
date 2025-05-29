@@ -1,0 +1,13 @@
+[dns-rebinding:IPv4] [dns] [unknown] bappeda.cirebonkota.go.id ["10.10.74.26"]
+[dns-rebinding:IPv4] [dns] [unknown] appdevel.cirebonkota.go.id ["10.10.74.229"]
+[dns-rebinding:IPv4] [dns] [unknown] diopeni.appdevel.cirebonkota.go.id ["10.10.74.229"]
+[dns-rebinding:IPv4] [dns] [unknown] dishub.cirebonkota.go.id ["10.10.74.8"]
+[dns-rebinding:IPv4] [dns] [unknown] disnaker.cirebonkota.go.id ["10.10.74.26"]
+[dns-rebinding:IPv4] [dns] [unknown] keckejaksan.cirebonkota.go.id ["10.10.74.26"]
+[dns-rebinding:IPv4] [dns] [unknown] setda.cirebonkota.go.id ["10.10.74.8"]
+[dns-rebinding:IPv4] [dns] [unknown] sidara.appdevel.cirebonkota.go.id ["10.10.74.229"]
+[dns-rebinding:IPv4] [dns] [unknown] siceppot-dev.cirebonkota.go.id ["10.10.74.9"]
+[dns-rebinding:IPv4] [dns] [unknown] simpenda-v1.cirebonkota.go.id ["10.10.234.15"]
+[dns-rebinding:IPv4] [dns] [unknown] simpenda-v3.cirebonkota.go.id ["10.10.234.14"]
+[ldap-anonymous-login-detect] [javascript] [medium] mail.cirebonkota.go.id:389
+[credentials-disclosure] [http] [unknown] https://dkis.cirebonkota.go.id ["api_key=ea11y-d36ec33f-a9a3-4a8b-9d28-1769e755e9a8"]
