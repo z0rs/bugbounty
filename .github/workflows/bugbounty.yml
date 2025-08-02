@@ -1,4 +1,4 @@
-name: Nuclei Scan
+name: Bugbounty
 
 on:
   push:
@@ -7,38 +7,46 @@ on:
 jobs:
   scan-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-        
+        uses: actions/checkout@v3
+
       - name: Install dependencies
+        shell: bash
         run: |
-          sudo apt-get update
+          set -e
           sudo apt-get update && sudo apt-get install -y wget unzip jq golang
+          go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest && sudo mv ~/go/bin/httpx /usr/bin/
           go install github.com/cybercdh/assetfinder@cybercdh && sudo mv ~/go/bin/assetfinder /usr/bin/
+          go install github.com/tomnomnom/httprobe@latest && sudo mv ~/go/bin/httprobe /usr/bin/
           LATEST_VERSION=$(curl -s https://api.github.com/repos/projectdiscovery/nuclei/releases/latest | jq -r '.tag_name')
           CLEAN_VERSION=${LATEST_VERSION#v}
           wget https://github.com/projectdiscovery/nuclei/releases/download/${LATEST_VERSION}/nuclei_${CLEAN_VERSION}_linux_amd64.zip
           unzip -o nuclei_${CLEAN_VERSION}_linux_amd64.zip
           sudo mv nuclei /usr/bin/
-          sudo chmod +x /usr/bin/nuclei && sudo rm -rf nuclei* *.md
+          sudo rm -rf nuclei* *.md
 
-      - name: Run Nuclei
+      - name: Get all domains
+        shell: bash
         run: |
-         curl -s "https://voidev.atlassian.net/" | nuclei -silent -attack-type pitchfork -severity medium,high,critical,unknown -o atlassian.txt
+          curl -s "https://gist.githubusercontent.com/z0rs/00b1404c1bba317c33b242a7b5291bac/raw/fb913a4584a8233e478e85fe84f3646646f5c304/orvamedia.txt" | nuclei -silent -nc -attack-type pitchfork -rl 50 -bs 10 -c 10 -timeout 20 -retries 2 \
+          | tee orvamedia.$(date +%Y-%m-%d).txt
 
       - name: Set up Git user
         run: |
           git config --global user.email "${{ secrets.EMAIL_ADDRESS }}"
           git config --global user.name "${{ secrets.USER_NAME }}"
-          
-      - name: Commit Nuclei
+
+      - name: Commit changes
+        shell: bash
         run: |
           git add .
-          git commit -m "Result scan $(date -u)" --no-verify
+          git diff --cached --quiet || git commit -m "Result scan $(date -u)" --no-verify
+        continue-on-error: true
 
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: master
+          github_token: ${{ secrets.GITHUB_TOKEN }}
